@@ -124,14 +124,14 @@ int main() {
         guess_result_t res = game_apply_guess(state, my_id, g_str);
         
         if (res == GUESS_WORD_COMPLETED) {
-            printf("\n>>> CORRECT! +1 Point! New Word Coming... <<<\n");
+            printf("\n>>> CORRECT! +2 Points! New Word Coming... <<<\n");
             game_setup_round(state, get_random_word());
         } 
         else if (res == GUESS_ELIMINATED) {
             printf("\n>>> YOU DIED! Game Over for you. <<<\n");
         } 
         else if (res == GUESS_HIT) {
-            printf("\nResult: HIT!\n");
+            printf("\nResult: HIT! (+1 Point)\n");
         } 
         else if (res == GUESS_MISS) {
             printf("\nResult: MISS! (-1 Life)\n");

@@ -77,11 +77,14 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
         return GUESS_MISS;
     }
 
+    // --- SCORING LOGIC UPDATE ---
+    
     // Check if word is fully revealed
     if (strcmp(st->revealed, st->secret_word) == 0) {
-        st->scores[player_id]++; // Point for the killing blow
+        st->scores[player_id] += 2; // +2 Points for finishing the word
         return GUESS_WORD_COMPLETED;
+    } else {
+        st->scores[player_id] += 1; // +1 Point for a correct letter
+        return GUESS_HIT;
     }
-
-    return GUESS_HIT;
 }
