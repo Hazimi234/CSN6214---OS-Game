@@ -4,59 +4,79 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <pthread.h>
-#include <sys/wait.h>
-#include <signal.h>
 #include <string.h>
+#include <time.h>
+#include <signal.h>
 #include "shared.h"
 #include "game_logic.h"
 
-// Global pointer so the handler can reach it
 shared_state_t *state_ptr;
 
-void cleanup_and_exit(int sig)
-{
-    printf("\n[Server] Cleaning up shared memory...\n");
-    if (state_ptr) {
-        munmap(state_ptr, sizeof(shared_state_t));
-    }
+void cleanup_and_exit(int sig) {
+    printf("\n[Server] Shutting down...\n");
+    if (state_ptr) munmap(state_ptr, sizeof(shared_state_t));
     shm_unlink("/hangman_shm");
     exit(0);
 }
 
-void handle_sigchld(int sig)
-{
-    while (waitpid(-1, NULL, WNOHANG) > 0);
-}
-
-// --- PART 2: SCHEDULER THREAD ---
+// --- SCHEDULER THREAD ---
 void *scheduler_thread(void *arg)
 {
     shared_state_t *st = (shared_state_t *)arg;
-    printf("[Scheduler] Thread started. Waiting for game to begin...\n");
+    
+    printf("[Scheduler] Thread active. Waiting for GAME_RUNNING phase...\n");
+    while (st->phase == GAME_WAITING) sleep(1);
 
-    while (st->phase == GAME_WAITING) {
-        sleep(1);
-    }
+    printf("[Scheduler] Game started! Managing turns...\n");
 
-    while (1)
+    while (st->phase != GAME_ENDED)
     {
         pthread_mutex_lock(&st->turn_mutex);
 
-        // Wait until the current player says "I'm done"
-        while (st->turn_complete == 0 && st->phase != GAME_ENDED)
-        {
+        while (st->turn_complete == 0 && st->phase != GAME_ENDED) {
             pthread_cond_wait(&st->sched_cond, &st->turn_mutex);
         }
 
-        if (st->phase == GAME_ENDED)
-        {
+        int alive_count = 0;
+        for(int i=0; i<st->player_count; i++) {
+            if(st->active[i] && !st->player_eliminated[i]) alive_count++;
+        }
+
+        if (alive_count == 0) {
+            printf("\n\n=== GAME OVER ===\n");
+            printf("Final Word was: %s\n", st->secret_word);
+            
+            int max_score = -1;
+            for (int i = 0; i < st->player_count; i++) {
+                if (st->scores[i] > max_score) max_score = st->scores[i];
+            }
+
+            printf("\n--- FINAL SCOREBOARD ---\n");
+            int winner_count = 0;
+            int winners[MAX_PLAYERS];
+            
+            for (int i = 0; i < st->player_count; i++) {
+                printf("Player %d: %d points\n", i + 1, st->scores[i]);
+                if (st->scores[i] == max_score) {
+                    winners[winner_count++] = i;
+                }
+            }
+            printf("------------------------\n");
+
+            if (winner_count > 1) {
+                printf(">>> TIE GAME! Winners: ");
+                for(int i=0; i<winner_count; i++) printf("P%d ", winners[i] + 1);
+                printf("<<<\n");
+            } else {
+                printf(">>> PLAYER %d WINS! <<<\n", winners[0] + 1);
+            }
+
+            st->phase = GAME_ENDED;
+            pthread_cond_broadcast(&st->turn_cond);
             pthread_mutex_unlock(&st->turn_mutex);
-            printf("[Scheduler] Game ended. Scheduler stopping.\n");
-            pthread_cond_broadcast(&st->turn_cond); 
             break;
         }
 
-        // Round Robin Logic
         int found_next = 0;
         int attempts = 0;
         int next_id = st->current_turn;
@@ -64,20 +84,18 @@ void *scheduler_thread(void *arg)
         do {
             next_id = (next_id + 1) % MAX_PLAYERS;
             attempts++;
-            if (st->active[next_id] == 1) {
+            if (st->active[next_id] && !st->player_eliminated[next_id]) {
                 found_next = 1;
             }
         } while (!found_next && attempts <= MAX_PLAYERS);
 
         if (found_next) {
             st->current_turn = next_id;
-            printf("[Scheduler] Turn advanced to Player %d\n", st->current_turn);
+            printf("[Scheduler] Next turn: Player %d\n", next_id + 1);
         }
 
-        // Reset flag and notify clients
         st->turn_complete = 0;
-        pthread_cond_broadcast(&st->turn_cond); 
-
+        pthread_cond_broadcast(&st->turn_cond);
         pthread_mutex_unlock(&st->turn_mutex);
     }
     return NULL;
@@ -85,121 +103,70 @@ void *scheduler_thread(void *arg)
 
 int main()
 {
-    // 1. Setup Shared Memory
+    srand(time(NULL));
+    shm_unlink("/hangman_shm"); // Force clear old memory
+
     int shm_fd = shm_open("/hangman_shm", O_CREAT | O_RDWR, 0666);
     ftruncate(shm_fd, sizeof(shared_state_t));
-    shared_state_t *state = mmap(NULL, sizeof(shared_state_t),
-                                 PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    shared_state_t *state = mmap(NULL, sizeof(shared_state_t), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
-    // 2. Initialize Synchronization
+    // Sync Init
     pthread_mutexattr_t mattr;
     pthread_mutexattr_init(&mattr);
     pthread_mutexattr_setpshared(&mattr, PTHREAD_PROCESS_SHARED);
-
+    pthread_mutex_init(&state->game_mutex, &mattr);
+    pthread_mutex_init(&state->turn_mutex, &mattr);
+    
     pthread_condattr_t cattr;
     pthread_condattr_init(&cattr);
     pthread_condattr_setpshared(&cattr, PTHREAD_PROCESS_SHARED);
-
-    pthread_mutex_init(&state->game_mutex, &mattr);
-    pthread_mutex_init(&state->turn_mutex, &mattr);
     pthread_cond_init(&state->turn_cond, &cattr);
     pthread_cond_init(&state->sched_cond, &cattr);
 
-    // Initial State
+    // Config Init
     state->player_count = 0;
+    state->target_players = 0; 
     state->current_turn = 0;
     state->turn_complete = 0;
     state->phase = GAME_WAITING;
     memset(state->active, 0, sizeof(state->active));
+    memset(state->player_eliminated, 0, sizeof(state->player_eliminated));
+    memset(state->scores, 0, sizeof(state->scores));
 
     state_ptr = state;
     signal(SIGINT, cleanup_and_exit);
-    signal(SIGCHLD, handle_sigchld);
 
-    // 3. Start Scheduler
     pthread_t sched_tid;
     pthread_create(&sched_tid, NULL, scheduler_thread, (void *)state);
 
-    printf("[Server] Running.\n");
+    printf("[Server] Lobby Open. Waiting for Host (Player 1) to join...\n");
+    game_setup_round(state, get_random_word());
+
+    // 1. Wait until Host sets the target
+    // We use (volatile int*) to force the compiler to check memory every loop
+    while(*(volatile int*)&state->target_players == 0) {
+        sleep(1);
+    }
+    printf("[Server] Host set lobby size to %d. Waiting for players...\n", state->target_players);
+
+    // 2. Wait until player count matches target
+    while(*(volatile int*)&state->player_count < *(volatile int*)&state->target_players) {
+        printf("[Server] Players connected: %d/%d\n", state->player_count, state->target_players);
+        sleep(1);
+    }
     
-    // --- ASK FOR NUMBER OF PLAYERS ---
-    int target_players = 0;
-    while (target_players < 3 || target_players > 5) {
-        printf("Enter number of players (3-5): ");
-        scanf("%d", &target_players);
-    }
-    printf("Waiting for %d players to join...\n", target_players);
-
-    // Fork players
-    while (state->player_count < target_players) 
-    {
-        pthread_mutex_lock(&state->game_mutex);
-        int new_id = state->player_count;
-        state->player_count++;
-        state->active[new_id] = 1;
-        pthread_mutex_unlock(&state->game_mutex);
-
-        pid_t pid = fork();
-
-        if (pid == 0)
-        {
-            // --- CHILD PROCESS (PLAYER) ---
-            printf("[Child %d] Connected.\n", new_id);
-            
-            while(state->phase == GAME_WAITING) sleep(1);
-
-            while (state->phase == GAME_RUNNING)
-            {
-                // A. Wait for Turn
-                pthread_mutex_lock(&state->turn_mutex);
-                
-                // FIXED: Also wait if turn_complete is 1 (Scheduler hasn't updated yet)
-                while ((state->current_turn != new_id || state->turn_complete == 1) 
-                       && state->phase == GAME_RUNNING)
-                {
-                    pthread_cond_wait(&state->turn_cond, &state->turn_mutex);
-                }
-
-                if (state->phase != GAME_RUNNING) {
-                    pthread_mutex_unlock(&state->turn_mutex);
-                    break;
-                }
-                
-                printf("\n--- [Player %d] YOUR TURN ---\n", new_id);
-                pthread_mutex_unlock(&state->turn_mutex);
-
-                // B. Perform Game Logic (Playable)
-                pthread_mutex_lock(&state->game_mutex);
-                
-                printf("Word: %s  (Attempts: %d)\n", state->revealed, state->remaining_attempts);
-                printf("Enter a letter guess: ");
-                
-                char guess;
-                // ' ' before %c eats newlines from previous inputs
-                scanf(" %c", &guess); 
-                
-                game_apply_guess(state, new_id, &guess);
-                printf("You guessed: %c\n", guess);
-                
-                pthread_mutex_unlock(&state->game_mutex);
-
-                // C. Signal Completion
-                pthread_mutex_lock(&state->turn_mutex);
-                state->turn_complete = 1;
-                pthread_cond_signal(&state->sched_cond);
-                pthread_mutex_unlock(&state->turn_mutex);
-            }
-            
-            printf("[Child %d] Game Over. Exiting.\n", new_id);
-            exit(0);
-        }
-    }
-
-    printf("[Server] All players connected. Starting game...\n");
-    game_start(state, "operating"); // Secret word is "operating"
+    printf("[Server] Lobby Full (%d/%d)! Starting game in 3 seconds...\n", state->player_count, state->target_players);
+    fflush(stdout); // Force print
+    sleep(3); 
+    
+    printf("[Server] GO! Setting phase to GAME_RUNNING.\n");
     state->phase = GAME_RUNNING;
-    pthread_cond_broadcast(&state->turn_cond); // Wake up waiting children
     
+    // Broadcast twice just to be safe
+    pthread_cond_broadcast(&state->turn_cond);
+    usleep(100000);
+    pthread_cond_broadcast(&state->turn_cond);
+
     pthread_join(sched_tid, NULL);
     cleanup_and_exit(0);
     return 0;

@@ -14,32 +14,42 @@ typedef enum
     GAME_ENDED = 2
 } game_phase_t;
 
+typedef enum {
+    GUESS_INVALID,
+    GUESS_DUPLICATE,
+    GUESS_HIT,
+    GUESS_MISS,
+    GUESS_WORD_COMPLETED,
+    GUESS_ELIMINATED,
+    GUESS_GAME_OVER
+} guess_result_t;
+
 typedef struct
 {
-    // --- Synchronization Primitives (REQUIRED for Part 2 & 3) ---
-    pthread_mutex_t game_mutex;  // Protects game board/state
-    pthread_mutex_t turn_mutex;  // Protects turn variables
-    
-    pthread_cond_t turn_cond;    // Signal sent TO Clients ("It is your turn")
-    pthread_cond_t sched_cond;   // Signal sent TO Scheduler ("Move finished")
+    // --- Synchronization ---
+    pthread_mutex_t game_mutex;
+    pthread_mutex_t turn_mutex;
+    pthread_cond_t turn_cond;
+    pthread_cond_t sched_cond;
+    int turn_complete;
 
-    int turn_complete;           // Flag: 1 = Current player finished move
-
-    // --- Server Core Fields ---
+    // --- Game Config ---
     int player_count;
-    int current_turn;            // ID of the player whose turn it is
-    int active[MAX_PLAYERS];     // 1 = Active, 0 = Inactive/Disconnected
+    int target_players; // NEW: Set by Host (Player 1)
+    int current_turn;
+    int active[MAX_PLAYERS];
 
-    // --- Hangman Game State ---
-    game_phase_t phase;
+    // --- SHARED BOARD STATE ---
     char secret_word[MAX_WORD_LEN];
-    int word_len;
     char revealed[MAX_WORD_LEN];
-    int remaining_attempts;
     int guessed[26];
-    int winner_id;
-    int last_player_id;
-    char last_guess;
+
+    // --- INDIVIDUAL STATS ---
+    int remaining_attempts[MAX_PLAYERS];
+    int scores[MAX_PLAYERS];
+    int player_eliminated[MAX_PLAYERS];
+
+    game_phase_t phase;
 
 } shared_state_t;
 
