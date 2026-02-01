@@ -16,25 +16,27 @@ typedef enum
 
 typedef struct
 {
-    pthread_mutex_t game_mutex;
-    pthread_mutex_t turn_mutex;
+    // --- Synchronization Primitives (REQUIRED for Part 2 & 3) ---
+    pthread_mutex_t game_mutex;  // Protects game board/state
+    pthread_mutex_t turn_mutex;  // Protects turn variables
+    
+    pthread_cond_t turn_cond;    // Signal sent TO Clients ("It is your turn")
+    pthread_cond_t sched_cond;   // Signal sent TO Scheduler ("Move finished")
 
-    // Existing / server core fields
+    int turn_complete;           // Flag: 1 = Current player finished move
+
+    // --- Server Core Fields ---
     int player_count;
-    int current_turn;
-    int active[MAX_PLAYERS];
+    int current_turn;            // ID of the player whose turn it is
+    int active[MAX_PLAYERS];     // 1 = Active, 0 = Inactive/Disconnected
 
-    // ===== Hangman fields (your logic needs these) =====
+    // --- Hangman Game State ---
     game_phase_t phase;
-
     char secret_word[MAX_WORD_LEN];
     int word_len;
-
     char revealed[MAX_WORD_LEN];
     int remaining_attempts;
-
     int guessed[26];
-
     int winner_id;
     int last_player_id;
     char last_guess;
