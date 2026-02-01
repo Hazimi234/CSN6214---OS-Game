@@ -14,30 +14,42 @@ typedef enum
     GAME_ENDED = 2
 } game_phase_t;
 
+typedef enum {
+    GUESS_INVALID,
+    GUESS_DUPLICATE,
+    GUESS_HIT,
+    GUESS_MISS,
+    GUESS_WORD_COMPLETED,
+    GUESS_ELIMINATED,
+    GUESS_GAME_OVER
+} guess_result_t;
+
 typedef struct
 {
+    // --- Synchronization ---
     pthread_mutex_t game_mutex;
     pthread_mutex_t turn_mutex;
+    pthread_cond_t turn_cond;
+    pthread_cond_t sched_cond;
+    int turn_complete;
 
-    // Existing / server core fields
+    // --- Game Config ---
     int player_count;
+    int target_players; // NEW: Set by Host (Player 1)
     int current_turn;
     int active[MAX_PLAYERS];
 
-    // ===== Hangman fields (your logic needs these) =====
-    game_phase_t phase;
-
+    // --- SHARED BOARD STATE ---
     char secret_word[MAX_WORD_LEN];
-    int word_len;
-
     char revealed[MAX_WORD_LEN];
-    int remaining_attempts;
-
     int guessed[26];
 
-    int winner_id;
-    int last_player_id;
-    char last_guess;
+    // --- INDIVIDUAL STATS ---
+    int remaining_attempts[MAX_PLAYERS];
+    int scores[MAX_PLAYERS];
+    int player_eliminated[MAX_PLAYERS];
+
+    game_phase_t phase;
 
 } shared_state_t;
 
