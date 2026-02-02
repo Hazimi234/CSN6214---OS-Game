@@ -1,7 +1,7 @@
 # CSN6214---OS-Game
 
 # Compile the entire project
-gcc -o server server.c game_logic.c shared.h -lpthread -lrt
+gcc server.c game_logic.c -o server -lpthread -lrt && gcc client.c game_logic.c -o client -lpthread -lrt
 
 # Run the server
 ./server

@@ -13,6 +13,26 @@
 
 shared_state_t *state;
 
+void print_hangman(int lives) {
+    printf("\n");
+    printf("  +---+\n");
+    printf("  |   |\n");
+
+    if (lives <= 5) printf("  O   |\n");
+    else            printf("      |\n");
+
+    if (lives <= 2)      printf(" /|\\  |\n");
+    else if (lives == 3) printf(" /|   |\n");
+    else if (lives == 4) printf("  |   |\n");
+    else                 printf("      |\n");
+
+    if (lives <= 0)      printf(" / \\  |\n");
+    else if (lives == 1) printf(" /    |\n");
+    else                 printf("      |\n");
+
+    printf("=========\n");
+}
+
 void cleanup_handler(int sig) {
     printf("\nExiting...\n");
     exit(0);
@@ -153,6 +173,7 @@ int main() {
                 game_setup_round(state, get_random_word());
             } 
             else if (res == GUESS_ELIMINATED) {
+                print_hangman(state->remaining_attempts[my_id]);
                 printf("\n>>> YOU DIED! Game Over for you. <<<\n");
             } 
             else if (res == GUESS_HIT) {
@@ -160,6 +181,7 @@ int main() {
             } 
             else if (res == GUESS_MISS) {
                 printf("\nResult: MISS! (-1 Life)\n");
+                print_hangman(state->remaining_attempts[my_id]);
             }
 
             // If we reached here, a valid new guess was made
