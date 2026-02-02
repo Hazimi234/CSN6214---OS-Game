@@ -12,12 +12,76 @@
 
 shared_state_t *state_ptr;
 
-void cleanup_and_exit(int sig) {
-    printf("\n[Server] Shutting down...\n");
-    if (state_ptr) munmap(state_ptr, sizeof(shared_state_t));
+// --- LOG FILE ---
+void write_log_to_file(shared_state_t *st){
+
+    if (st==NULL || st->log_count == 0) {
+        printf("[SERVER] No scores to write.\n");
+        return;
+    }   
+
+    // char filename[64];
+    // time_t now = time(NULL);
+    // struct tm *t = localtime(&now);
+    // strftime(filename, sizeof(filename)-1, "scores_%Y%m%d_%H%M%S.txt", t);
+
+    char filename[32];
+    int file_num=1;
+    FILE *fp=NULL;
+
+    while (1){
+        sprintf(filename, "scores_%d.txt", file_num);
+        if (access(filename, F_OK) != -1){
+            file_num++;
+        } else{
+            fp= fopen(filename, "w");
+            break;
+        }
+    }
+    if (fp == NULL) {
+        perror("[SERVER] Failed to open scores file");
+        return;
+    }
+    fprintf(fp, "=== GAME LOG ===\n");
+    fprintf(fp, "Current Word: %s\n", st->secret_word);
+    fprintf(fp, "----------------\n");
+
+    for (int i=0; i< st->log_count; i++){
+        switch (st->logs[i].result){
+            case GUESS_HIT: fprintf(fp, "Player %d guessed '%c' -> HIT (+1 Point)\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
+            case GUESS_MISS: fprintf(fp, "Player %d guessed '%c' -> MISS (-1 Life)\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
+            case GUESS_WORD_COMPLETED: fprintf(fp, "Player %d guessed '%c' -> WORD COMPLETED (+2 Points)\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
+            case GUESS_ELIMINATED: fprintf(fp, "Player %d guessed '%c' -> ELIMINATED\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
+            case GUESS_DUPLICATE: fprintf(fp, "Player %d guessed '%c' -> DUPLICATE GUESS\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
+            default: break;
+        }
+    }
+
+    fprintf(fp, "----------------\nFinal Scores:\n");
+    for (int i = 0; i < st->player_count; i++) {
+        fprintf(fp, "Player %d: %d points\n", i + 1, st->scores[i]);
+    }
+    fclose(fp);
+    printf("[SERVER] Game log written to %s\n", filename);
+}
+
+void cleanup_and_exit(int sig){
+    printf("\n[SERVER] Shutting down...\n");
+    if (state_ptr) {
+        write_log_to_file(state_ptr);
+        munmap(state_ptr, sizeof(shared_state_t));
+    }
     shm_unlink("/hangman_shm");
     exit(0);
 }
+
+
+// void cleanup_and_exit(int sig) {
+//     printf("\n[Server] Shutting down...\n");
+//     if (state_ptr) munmap(state_ptr, sizeof(shared_state_t));
+//     shm_unlink("/hangman_shm");
+//     exit(0);
+// }
 
 // --- SCHEDULER THREAD ---
 void *scheduler_thread(void *arg)
@@ -101,6 +165,8 @@ void *scheduler_thread(void *arg)
     return NULL;
 }
 
+
+
 int main()
 {
     srand(time(NULL));
@@ -128,6 +194,7 @@ int main()
     state->target_players = 0; 
     state->current_turn = 0;
     state->turn_complete = 0;
+    state->log_count = 0; /// logging ///
     state->phase = GAME_WAITING;
     memset(state->active, 0, sizeof(state->active));
     memset(state->player_eliminated, 0, sizeof(state->player_eliminated));

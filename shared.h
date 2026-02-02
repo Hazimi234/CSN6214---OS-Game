@@ -5,7 +5,9 @@
 
 #define MAX_PLAYERS 5
 #define MAX_WORD_LEN 32
-#define MAX_ATTEMPTS 6
+#define MAX_ATTEMPTS 1 //need 6 btw
+#define MAX_LOG_ENTRIES 100
+#define LOG_MSG_LEN 64
 
 typedef enum
 {
@@ -23,6 +25,13 @@ typedef enum {
     GUESS_ELIMINATED,
     GUESS_GAME_OVER
 } guess_result_t;
+
+typedef struct {
+    int player_id;
+    char guessed_char;
+    guess_result_t result;
+    int score_change;
+} game_log_entry_t;
 
 typedef struct
 {
@@ -48,6 +57,11 @@ typedef struct
     int remaining_attempts[MAX_PLAYERS];
     int scores[MAX_PLAYERS];
     int player_eliminated[MAX_PLAYERS];
+
+    // --- GAME LOG ---
+    int log_count;
+    game_log_entry_t logs[MAX_LOG_ENTRIES];
+    
 
     game_phase_t phase;
 
