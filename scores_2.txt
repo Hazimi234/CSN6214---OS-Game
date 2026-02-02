@@ -1,0 +1,41 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: brain ]
+----------------------
+P1 guessed 'g' -> MISS (-1 Life)
+P2 guessed 'g' -> DUPLICATE GUESS
+P3 guessed 'a' -> HIT (+1 Point)
+P2 guessed 'f' -> MISS (-1 Life)
+P1 guessed 'a' -> DUPLICATE GUESS
+P2 guessed 'd' -> MISS (-1 Life)
+P3 guessed 'o' -> MISS (-1 Life)
+P1 guessed 'p' -> MISS (-1 Life)
+P2 guessed 'b' -> HIT (+1 Point)
+P3 guessed 'r' -> HIT (+1 Point)
+P1 guessed 'k' -> MISS (-1 Life)
+P2 guessed 'v' -> MISS (-1 Life)
+P3 guessed 's' -> MISS (-1 Life)
+P1 guessed 's' -> DUPLICATE GUESS
+P2 guessed 'w' -> MISS (-1 Life)
+P3 guessed 'e' -> MISS (-1 Life)
+P1 guessed 'i' -> HIT (+1 Point)
+P2 guessed 'l' -> MISS (-1 Life)
+P3 guessed 'n' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: money ]
+----------------------
+P1 guessed 'b' -> MISS (-1 Life)
+P2 guessed 'i' -> ELIMINATED
+P3 guessed 'p' -> MISS (-1 Life)
+P1 guessed 'r' -> MISS (-1 Life)
+P3 guessed 'a' -> MISS (-1 Life)
+P1 guessed 'a' -> DUPLICATE GUESS
+P3 guessed 'f' -> ELIMINATED
+P1 guessed 'p' -> DUPLICATE GUESS
+P1 guessed 'v' -> ELIMINATED
+
+----------------
+Final Scores:
+Player 1: 1 points
+Player 2: 1 points
+Player 3: 4 points
