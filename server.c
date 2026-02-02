@@ -62,6 +62,10 @@ void write_log_to_file(shared_state_t *st) {
     }
 
     fprintf(fp, "\n----------------\nFinal Scores:\n");
+    fprintf(fp, "Winner is Player %d\n", 1 + (st->scores[0] >= st->scores[1] ? 0 : 1), 
+            st->scores[0] >= st->scores[1] ? st->scores[0] : st->scores[1]);
+    fprintf(fp, "----------------\n");
+    
     for (int i = 0; i < st->player_count; i++) {
         fprintf(fp, "Player %d: %d points\n", i + 1, st->scores[i]);
     }
