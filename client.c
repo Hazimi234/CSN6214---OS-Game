@@ -8,6 +8,8 @@
 #include <time.h>
 #include "shared.h"
 #include "game_logic.h"
+#include <ctype.h>
+#include <string.h>
 
 shared_state_t *state;
 
@@ -108,52 +110,62 @@ int main() {
         pthread_mutex_unlock(&state->turn_mutex);
 
         // B. Play Move
-        pthread_mutex_lock(&state->game_mutex);
-        
-        printf("WORD: %s\n", state->revealed);
-        printf("USED: [ ");
-        for(int i=0; i<26; i++) if(state->guessed[i]) printf("%c ", 'A'+i);
-        printf("]\n");
-        printf("STATS: Score = %d  |  Lives = %d\n", state->scores[my_id], state->remaining_attempts[my_id]);
-        
-        // //before asking for a guess, (for log)
-        // // printf("\n--- GAME LOG ---\n");
-        // int start = (state->log_count>5) ? state->log_count - 5 : 0; // show last 5 moves
-        // for (int i=start; i<state-> log_count; i++){
-        //     printf("Player %d guessed '%c' -> ", state->logs[i].player_id + 1, state-> logs[i].guessed_char);
-        //     if (state->logs[i].result == GUESS_HIT) printf("HIT (+1 Point)\n");
-        //     else if (state->logs[i].result == GUESS_MISS) printf("MISS (-1 Life)\n");
-        //     else if (state->logs[i].result == GUESS_WORD_COMPLETED) printf("WORD COMPLETED (+2 Points)\n");
-        //     else if (state->logs[i].result == GUESS_ELIMINATED) printf("ELIMINATED\n");
-        //     else if (state->logs[i].result == GUESS_DUPLICATE) printf("DUPLICATE GUESS\n");
-        // }
 
+       int turn_over = 0;
+        while (!turn_over && state->phase == GAME_RUNNING) {
+            pthread_mutex_lock(&state->game_mutex);
+            
+            printf("\nWORD: %s\n", state->revealed);
+            printf("USED: [ ");
+            for(int i = 0; i < 26; i++) if(state->guessed[i]) printf("%c ", 'A' + i);
+            printf("]\n");
+            printf("STATS: Score = %d  |  Lives = %d\n", state->scores[my_id], state->remaining_attempts[my_id]);
+            
+            char input_buffer[100];
+            printf("Guess a letter: ");
+            // Use %s to read the entire word/string entered by the user
+            if (scanf("%s", input_buffer) != 1) {
+                pthread_mutex_unlock(&state->game_mutex);
+                continue;
+            }
 
-        printf("Guess a letter: ");
-        char g;
-        scanf(" %c", &g);
-        char g_str[2] = {g, '\0'};
-        
-        guess_result_t res = game_apply_guess(state, my_id, g_str);
-        
-        if (res == GUESS_WORD_COMPLETED) {
-            printf("\n>>> CORRECT! +2 Points! New Word Coming... <<<\n");
-            game_setup_round(state, get_random_word());
-        } 
-        else if (res == GUESS_ELIMINATED) {
-            printf("\n>>> YOU DIED! Game Over for you. <<<\n");
-        } 
-        else if (res == GUESS_HIT) {
-            printf("\nResult: HIT! (+1 Point)\n");
-        } 
-        else if (res == GUESS_MISS) {
-            printf("\nResult: MISS! (-1 Life)\n");
+            // 1. Validation: Catch multi-letter inputs or non-alphabet characters
+            if (strlen(input_buffer) > 1 || !isalpha(input_buffer[0])) {
+                printf("\n>>> INVALID INPUT! Please enter a single letter (A-Z). <<<\n");
+                pthread_mutex_unlock(&state->game_mutex);
+                continue; // Restarts the loop, player keeps their turn
+            }
+
+            char g = input_buffer[0];
+            char g_str[2] = {g, '\0'};
+            guess_result_t res = game_apply_guess(state, my_id, g_str);
+
+            // 2. Handle Duplicate Guesses: Keep the turn
+            if (res == GUESS_DUPLICATE) {
+                printf("\n>>> ALREADY USED! Try a different letter. <<<\n");
+                pthread_mutex_unlock(&state->game_mutex);
+                continue; // Restarts the loop, player keeps their turn
+            }
+
+            // 3. Handle valid results (Hit/Miss/Win/Loss)
+            if (res == GUESS_WORD_COMPLETED) {
+                printf("\n>>> CORRECT! +2 Points! New Word Coming... <<<\n");
+                game_setup_round(state, get_random_word());
+            } 
+            else if (res == GUESS_ELIMINATED) {
+                printf("\n>>> YOU DIED! Game Over for you. <<<\n");
+            } 
+            else if (res == GUESS_HIT) {
+                printf("\nResult: HIT! (+1 Point)\n");
+            } 
+            else if (res == GUESS_MISS) {
+                printf("\nResult: MISS! (-1 Life)\n");
+            }
+
+            // If we reached here, a valid new guess was made
+            turn_over = 1; 
+            pthread_mutex_unlock(&state->game_mutex);
         }
-        else if (res == GUESS_DUPLICATE) {
-            printf("\nResult: ALREADY USED! Try again next turn.\n");
-        }
-
-        pthread_mutex_unlock(&state->game_mutex);
 
         // C. Signal Done
         pthread_mutex_lock(&state->turn_mutex);

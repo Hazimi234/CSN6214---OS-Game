@@ -54,11 +54,12 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
     guess_result_t res;
 
     // Check SHARED history
-    if (st->guessed[idx]) {res= GUESS_DUPLICATE;}
-    else{
-         // Mark as guessed for EVERYONE
+    if (st->guessed[idx]) {
+        res= GUESS_DUPLICATE;
+        return res;
+    }
+    // Mark as guessed for EVERYONE
     st->guessed[idx] = 1;
-
     // char guess_char = (char)('a' + idx);
     int hit = 0;
     int len = strlen(st->secret_word);
@@ -92,7 +93,6 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
         // score_change = 1;
         res= GUESS_HIT;
         }
-    }
     }
     
    
