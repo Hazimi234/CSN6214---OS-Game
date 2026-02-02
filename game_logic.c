@@ -54,7 +54,7 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
     guess_result_t res;
 
     // Check SHARED history
-    if (st->guessed[idx]) {return GUESS_DUPLICATE;}
+    if (st->guessed[idx]) {res= GUESS_DUPLICATE;}
     else{
          // Mark as guessed for EVERYONE
     st->guessed[idx] = 1;
@@ -102,6 +102,7 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
         st->logs[st->log_count].player_id = player_id;
         st->logs[st->log_count].guessed_char = guess_char;
         st->logs[st->log_count].result = res;
+        strncpy(st->logs[st->log_count].word, st->secret_word, MAX_WORD_LEN - 1);
         st->log_count++;
     }
     return res;

@@ -5,7 +5,7 @@
 
 #define MAX_PLAYERS 5
 #define MAX_WORD_LEN 32
-#define MAX_ATTEMPTS 1 //need 6 btw
+#define MAX_ATTEMPTS 6 //need 6 btw
 #define MAX_LOG_ENTRIES 100
 #define LOG_MSG_LEN 64
 
@@ -31,6 +31,7 @@ typedef struct {
     char guessed_char;
     guess_result_t result;
     int score_change;
+    char word[MAX_WORD_LEN];
 } game_log_entry_t;
 
 typedef struct

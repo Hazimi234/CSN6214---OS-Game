@@ -13,56 +13,61 @@
 shared_state_t *state_ptr;
 
 // --- LOG FILE ---
-void write_log_to_file(shared_state_t *st){
-
-    if (st==NULL || st->log_count == 0) {
+void write_log_to_file(shared_state_t *st) {
+    if (st == NULL || st->log_count == 0) {
         printf("[SERVER] No scores to write.\n");
         return;
     }   
 
-    // char filename[64];
-    // time_t now = time(NULL);
-    // struct tm *t = localtime(&now);
-    // strftime(filename, sizeof(filename)-1, "scores_%Y%m%d_%H%M%S.txt", t);
-
     char filename[32];
-    int file_num=1;
-    FILE *fp=NULL;
+    int file_num = 1;
+    FILE *fp = NULL;
 
-    while (1){
+    while (1) {
         sprintf(filename, "scores_%d.txt", file_num);
-        if (access(filename, F_OK) != -1){
+        if (access(filename, F_OK) != -1) {
             file_num++;
-        } else{
-            fp= fopen(filename, "w");
+        } else {
+            fp = fopen(filename, "w");
             break;
         }
     }
-    if (fp == NULL) {
-        perror("[SERVER] Failed to open scores file");
-        return;
-    }
-    fprintf(fp, "=== GAME LOG ===\n");
-    fprintf(fp, "Current Word: %s\n", st->secret_word);
-    fprintf(fp, "----------------\n");
 
-    for (int i=0; i< st->log_count; i++){
-        switch (st->logs[i].result){
-            case GUESS_HIT: fprintf(fp, "Player %d guessed '%c' -> HIT (+1 Point)\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
-            case GUESS_MISS: fprintf(fp, "Player %d guessed '%c' -> MISS (-1 Life)\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
-            case GUESS_WORD_COMPLETED: fprintf(fp, "Player %d guessed '%c' -> WORD COMPLETED (+2 Points)\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
-            case GUESS_ELIMINATED: fprintf(fp, "Player %d guessed '%c' -> ELIMINATED\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
-            case GUESS_DUPLICATE: fprintf(fp, "Player %d guessed '%c' -> DUPLICATE GUESS\n", st-> logs[i]. player_id + 1, st-> logs[i]. guessed_char); break;
-            default: break;
+    if (fp == NULL) return;
+
+    fprintf(fp, "=== GAME SESSION LOG ===\n");
+    
+    char last_word[MAX_WORD_LEN] = ""; // Keep track of word changes
+
+    for (int i = 0; i < st->log_count; i++) {
+        // If this move is for a different word than the last move, print a header
+        if (strcmp(last_word, st->logs[i].word) != 0) {
+            fprintf(fp, "\n[ CURRENT WORD: %s ]\n", st->logs[i].word);
+            fprintf(fp, "----------------------\n");
+            strncpy(last_word, st->logs[i].word, MAX_WORD_LEN);
+        }
+
+        switch (st->logs[i].result) {
+            case GUESS_HIT: 
+                fprintf(fp, "P%d guessed '%c' -> HIT (+1 Point)\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
+            case GUESS_MISS: 
+                fprintf(fp, "P%d guessed '%c' -> MISS (-1 Life)\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
+            case GUESS_WORD_COMPLETED: 
+                fprintf(fp, "P%d guessed '%c' -> WORD COMPLETED (+2 Points)\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
+            case GUESS_ELIMINATED: 
+                fprintf(fp, "P%d guessed '%c' -> ELIMINATED\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
+            case GUESS_DUPLICATE: 
+                fprintf(fp, "P%d guessed '%c' -> DUPLICATE GUESS\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
         }
     }
 
-    fprintf(fp, "----------------\nFinal Scores:\n");
+    fprintf(fp, "\n----------------\nFinal Scores:\n");
     for (int i = 0; i < st->player_count; i++) {
         fprintf(fp, "Player %d: %d points\n", i + 1, st->scores[i]);
     }
+    
     fclose(fp);
-    printf("[SERVER] Game log written to %s\n", filename);
+    printf("[SERVER] Game log written to %s\n", filename); // Fixed to show actual filename
 }
 
 void cleanup_and_exit(int sig){
