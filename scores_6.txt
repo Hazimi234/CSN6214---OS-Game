@@ -1,0 +1,45 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: click ]
+----------------------
+P1 guessed 'd' -> MISS (-1 Life)
+P2 guessed 'f' -> MISS (-1 Life)
+P3 guessed 'g' -> MISS (-1 Life)
+P1 guessed 'i' -> HIT (+1 Point)
+P2 guessed 'p' -> MISS (-1 Life)
+P3 guessed 's' -> MISS (-1 Life)
+P1 guessed 'a' -> MISS (-1 Life)
+P2 guessed 'r' -> MISS (-1 Life)
+P3 guessed 'm' -> MISS (-1 Life)
+P1 guessed 'q' -> MISS (-1 Life)
+P2 guessed 't' -> MISS (-1 Life)
+P3 guessed 'v' -> MISS (-1 Life)
+P1 guessed 'w' -> MISS (-1 Life)
+P2 guessed 'n' -> MISS (-1 Life)
+P3 guessed 'c' -> HIT (+1 Point)
+P1 guessed 'k' -> HIT (+1 Point)
+P2 guessed 'l' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: brush ]
+----------------------
+P3 guessed 'p' -> MISS (-1 Life)
+P1 guessed 'u' -> HIT (+1 Point)
+P2 guessed 'm' -> ELIMINATED
+P3 guessed 'o' -> ELIMINATED
+P1 guessed 'b' -> HIT (+1 Point)
+P1 guessed 'r' -> HIT (+1 Point)
+P1 guessed 's' -> HIT (+1 Point)
+P1 guessed 'h' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: watch ]
+----------------------
+P1 guessed 'f' -> MISS (-1 Life)
+P1 guessed 'g' -> ELIMINATED
+
+----------------
+Final Scores:
+Winner is Player 1
+----------------
+Player 1: 8 points
+Player 2: 2 points
+Player 3: 1 points

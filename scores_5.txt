@@ -1,0 +1,43 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: beach ]
+----------------------
+P1 guessed 'a' -> HIT (+1 Point)
+P2 guessed 'r' -> MISS (-1 Life)
+P3 guessed 'm' -> MISS (-1 Life)
+P1 guessed 't' -> MISS (-1 Life)
+P2 guessed 'b' -> HIT (+1 Point)
+P3 guessed 'l' -> MISS (-1 Life)
+P1 guessed 'k' -> MISS (-1 Life)
+P2 guessed 's' -> MISS (-1 Life)
+P3 guessed 'e' -> HIT (+1 Point)
+P1 guessed 'c' -> HIT (+1 Point)
+P2 guessed 'h' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: glass ]
+----------------------
+P3 guessed 'v' -> MISS (-1 Life)
+P1 guessed 'r' -> MISS (-1 Life)
+P2 guessed 't' -> MISS (-1 Life)
+P3 guessed 'q' -> MISS (-1 Life)
+P1 guessed 'a' -> HIT (+1 Point)
+P2 guessed 'i' -> MISS (-1 Life)
+P3 guessed 'b' -> MISS (-1 Life)
+P1 guessed 'p' -> MISS (-1 Life)
+P2 guessed 'u' -> MISS (-1 Life)
+P3 guessed 'o' -> ELIMINATED
+P1 guessed 'e' -> MISS (-1 Life)
+P2 guessed 's' -> HIT (+1 Point)
+P1 guessed 'g' -> HIT (+1 Point)
+P2 guessed 'l' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: heart ]
+----------------------
+P1 guessed 'd' -> ELIMINATED
+P2 guessed 'i' -> ELIMINATED
+
+----------------
+Final Scores:
+Player 1: 4 points
+Player 2: 6 points
+Player 3: 1 points

@@ -1,0 +1,40 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: green ]
+----------------------
+P1 guessed 'a' -> MISS (-1 Life)
+P2 guessed 'e' -> HIT (+1 Point)
+P3 guessed 'i' -> MISS (-1 Life)
+P1 guessed 'g' -> HIT (+1 Point)
+P2 guessed 'p' -> MISS (-1 Life)
+P3 guessed 'z' -> MISS (-1 Life)
+P1 guessed 'r' -> HIT (+1 Point)
+P2 guessed 'b' -> MISS (-1 Life)
+P3 guessed 'x' -> MISS (-1 Life)
+P1 guessed 'n' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: music ]
+----------------------
+P2 guessed 'a' -> MISS (-1 Life)
+P3 guessed 'e' -> MISS (-1 Life)
+P1 guessed 'i' -> HIT (+1 Point)
+P2 guessed 'o' -> MISS (-1 Life)
+P3 guessed 'u' -> HIT (+1 Point)
+P1 guessed 'g' -> MISS (-1 Life)
+P2 guessed 'd' -> MISS (-1 Life)
+P3 guessed 'w' -> MISS (-1 Life)
+P1 guessed 'c' -> HIT (+1 Point)
+P2 guessed 'p' -> ELIMINATED
+P3 guessed 'l' -> ELIMINATED
+P1 guessed 'f' -> MISS (-1 Life)
+P1 guessed 'q' -> MISS (-1 Life)
+P1 guessed 'x' -> MISS (-1 Life)
+P1 guessed 'z' -> ELIMINATED
+
+----------------
+Final Scores:
+Player 1: 6 points
+Player 2: 1 points
+Player 3: 1 points
+----------------
+RESULT: Winner is Player 1 with 6 points

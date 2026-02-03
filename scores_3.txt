@@ -1,0 +1,20 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: whale ]
+----------------------
+P1 guessed 'a' -> HIT (+1 Point)
+P2 guessed 'o' -> MISS (-1 Life)
+P3 guessed 'n' -> MISS (-1 Life)
+P1 guessed 'c' -> MISS (-1 Life)
+P2 guessed 'f' -> MISS (-1 Life)
+P3 guessed 'x' -> MISS (-1 Life)
+P1 guessed 'h' -> HIT (+1 Point)
+P2 guessed 'q' -> MISS (-1 Life)
+P1 guessed 'i' -> MISS (-1 Life)
+P3 guessed 's' -> MISS (-1 Life)
+
+----------------
+Final Scores:
+Player 1: 2 points
+Player 2: 0 points
+Player 3: 0 points
