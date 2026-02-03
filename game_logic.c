@@ -50,13 +50,17 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
     int idx = normalize_letter(input);
     if (idx < 0 || idx > 25) return GUESS_INVALID;
 
+    char guess_char = (char)('a' + idx);
+    guess_result_t res;
+
     // Check SHARED history
-    if (st->guessed[idx]) return GUESS_DUPLICATE;
-    
+    if (st->guessed[idx]) {
+        res= GUESS_DUPLICATE;
+        return res;
+    }
     // Mark as guessed for EVERYONE
     st->guessed[idx] = 1;
-
-    char guess_char = (char)('a' + idx);
+    // char guess_char = (char)('a' + idx);
     int hit = 0;
     int len = strlen(st->secret_word);
 
@@ -68,23 +72,43 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
         }
     }
 
+    // guess_result_t res;
+    // int score_change = 0;
+
     if (!hit) {
         st->remaining_attempts[player_id]--;
         if (st->remaining_attempts[player_id] <= 0) {
             st->player_eliminated[player_id] = 1;
-            return GUESS_ELIMINATED;
+            res = GUESS_ELIMINATED;
+        } else {
+            res = GUESS_MISS;
         }
-        return GUESS_MISS;
+    } else{
+         if (strcmp(st->revealed, st->secret_word) == 0) {
+        st->scores[player_id] += 2;
+        // score_change = 2;
+        res= GUESS_WORD_COMPLETED;
+    } else{
+        st->scores[player_id] += 1;
+        // score_change = 1;
+        res= GUESS_HIT;
+        }
     }
+    
+   
 
+    // Add to game log
+    if (st->log_count < MAX_LOG_ENTRIES){
+        st->logs[st->log_count].player_id = player_id;
+        st->logs[st->log_count].guessed_char = guess_char;
+        st->logs[st->log_count].result = res;
+        strncpy(st->logs[st->log_count].word, st->secret_word, MAX_WORD_LEN - 1);
+        st->log_count++;
+    }
+    return res;
+}
     // --- SCORING LOGIC UPDATE ---
     
     // Check if word is fully revealed
-    if (strcmp(st->revealed, st->secret_word) == 0) {
-        st->scores[player_id] += 2; // +2 Points for finishing the word
-        return GUESS_WORD_COMPLETED;
-    } else {
-        st->scores[player_id] += 1; // +1 Point for a correct letter
-        return GUESS_HIT;
-    }
-}
+    // +2 Points for finishing the word
+    

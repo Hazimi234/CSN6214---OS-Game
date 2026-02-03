@@ -1,0 +1,48 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: storm ]
+----------------------
+P1 guessed 'a' -> MISS (-1 Life)
+P2 guessed 'e' -> MISS (-1 Life)
+P3 guessed 'i' -> MISS (-1 Life)
+P1 guessed 'o' -> HIT (+1 Point)
+P2 guessed 'u' -> MISS (-1 Life)
+P3 guessed 'f' -> MISS (-1 Life)
+P1 guessed 'l' -> MISS (-1 Life)
+P2 guessed 'r' -> HIT (+1 Point)
+P3 guessed 't' -> HIT (+1 Point)
+P1 guessed 's' -> HIT (+1 Point)
+P2 guessed 'y' -> MISS (-1 Life)
+P3 guessed 'm' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: feast ]
+----------------------
+P1 guessed 'a' -> HIT (+1 Point)
+P2 guessed 'e' -> HIT (+1 Point)
+P3 guessed 'b' -> MISS (-1 Life)
+P1 guessed 'p' -> MISS (-1 Life)
+P2 guessed 'y' -> MISS (-1 Life)
+P3 guessed 'h' -> MISS (-1 Life)
+P1 guessed 's' -> HIT (+1 Point)
+P2 guessed 'g' -> MISS (-1 Life)
+P3 guessed 'c' -> MISS (-1 Life)
+P1 guessed 'd' -> MISS (-1 Life)
+P2 guessed 'm' -> ELIMINATED
+P3 guessed 'f' -> HIT (+1 Point)
+P1 guessed 'z' -> MISS (-1 Life)
+P3 guessed 't' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: space ]
+----------------------
+P1 guessed 'a' -> HIT (+1 Point)
+P3 guessed 'e' -> HIT (+1 Point)
+P1 guessed 'q' -> ELIMINATED
+P3 guessed 'z' -> ELIMINATED
+
+----------------
+Final Scores:
+Player 1: 5 points
+Player 2: 2 points
+Player 3: 7 points
+----------------
+RESULT: Winner is Player 3 with 7 points

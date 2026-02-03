@@ -1,0 +1,61 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: lemon ]
+----------------------
+P1 guessed 'a' -> MISS (-1 Life)
+P2 guessed 'e' -> HIT (+1 Point)
+P3 guessed 'i' -> MISS (-1 Life)
+P4 guessed 'o' -> HIT (+1 Point)
+P1 guessed 'w' -> MISS (-1 Life)
+P2 guessed 't' -> MISS (-1 Life)
+P3 guessed 'u' -> MISS (-1 Life)
+P4 guessed 's' -> MISS (-1 Life)
+P1 guessed 'l' -> HIT (+1 Point)
+P2 guessed 'g' -> MISS (-1 Life)
+P3 guessed 'n' -> HIT (+1 Point)
+P4 guessed 'm' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: robot ]
+----------------------
+P1 guessed 'e' -> MISS (-1 Life)
+P2 guessed 'i' -> MISS (-1 Life)
+P3 guessed 'a' -> MISS (-1 Life)
+P4 guessed 'o' -> HIT (+1 Point)
+P1 guessed 'b' -> HIT (+1 Point)
+P2 guessed 'w' -> MISS (-1 Life)
+P3 guessed 'q' -> MISS (-1 Life)
+P4 guessed 'k' -> MISS (-1 Life)
+P1 guessed 'c' -> MISS (-1 Life)
+P2 guessed 'p' -> MISS (-1 Life)
+P3 guessed 'y' -> MISS (-1 Life)
+P4 guessed 'r' -> HIT (+1 Point)
+P1 guessed 't' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: cloud ]
+----------------------
+P2 guessed 'u' -> HIT (+1 Point)
+P3 guessed 'a' -> ELIMINATED
+P4 guessed 'e' -> MISS (-1 Life)
+P1 guessed 'i' -> MISS (-1 Life)
+P2 guessed 'o' -> HIT (+1 Point)
+P4 guessed 'm' -> MISS (-1 Life)
+P1 guessed 's' -> ELIMINATED
+P2 guessed 'h' -> ELIMINATED
+P4 guessed 't' -> MISS (-1 Life)
+P4 guessed 'c' -> HIT (+1 Point)
+P4 guessed 'l' -> HIT (+1 Point)
+P4 guessed 'd' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: diary ]
+----------------------
+P4 guessed 'a' -> HIT (+1 Point)
+P4 guessed 't' -> ELIMINATED
+
+----------------
+Final Scores:
+Winner is Player 1
+----------------
+Player 1: 4 points
+Player 2: 3 points
+Player 3: 1 points
+Player 4: 10 points

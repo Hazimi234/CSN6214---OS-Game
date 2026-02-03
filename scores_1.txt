@@ -1,0 +1,19 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: green ]
+----------------------
+P1 guessed 'f' -> MISS (-1 Life)
+P3 guessed 'h' -> MISS (-1 Life)
+P1 guessed 'a' -> MISS (-1 Life)
+P3 guessed 's' -> MISS (-1 Life)
+P1 guessed 'a' -> DUPLICATE GUESS
+P2 guessed 'a' -> DUPLICATE GUESS
+P3 guessed 'f' -> DUPLICATE GUESS
+P1 guessed 's' -> DUPLICATE GUESS
+P2 guessed 'a' -> DUPLICATE GUESS
+
+----------------
+Final Scores:
+Player 1: 0 points
+Player 2: 0 points
+Player 3: 0 points
