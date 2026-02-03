@@ -23,6 +23,7 @@ void write_log_to_file(shared_state_t *st) {
     int file_num = 1;
     FILE *fp = NULL;
 
+    // Find a unique filename (scores_1.txt, scores_2.txt, etc.)
     while (1) {
         sprintf(filename, "scores_%d.txt", file_num);
         if (access(filename, F_OK) != -1) {
@@ -37,10 +38,10 @@ void write_log_to_file(shared_state_t *st) {
 
     fprintf(fp, "=== GAME SESSION LOG ===\n");
     
-    char last_word[MAX_WORD_LEN] = ""; // Keep track of word changes
+    char last_word[MAX_WORD_LEN] = ""; 
 
+    // 1. Write the Move History
     for (int i = 0; i < st->log_count; i++) {
-        // If this move is for a different word than the last move, print a header
         if (strcmp(last_word, st->logs[i].word) != 0) {
             fprintf(fp, "\n[ CURRENT WORD: %s ]\n", st->logs[i].word);
             fprintf(fp, "----------------------\n");
@@ -58,20 +59,52 @@ void write_log_to_file(shared_state_t *st) {
                 fprintf(fp, "P%d guessed '%c' -> ELIMINATED\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
             case GUESS_DUPLICATE: 
                 fprintf(fp, "P%d guessed '%c' -> DUPLICATE GUESS\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
+            default: break;
         }
     }
 
     fprintf(fp, "\n----------------\nFinal Scores:\n");
-    fprintf(fp, "Winner is Player %d\n", 1 + (st->scores[0] >= st->scores[1] ? 0 : 1), 
-            st->scores[0] >= st->scores[1] ? st->scores[0] : st->scores[1]);
-    fprintf(fp, "----------------\n");
     
+    // 2. Calculate Max Score (Dynamic for ALL players)
+    int max_score = -1;
+    for (int i = 0; i < st->player_count; i++) {
+        if (st->scores[i] > max_score) {
+            max_score = st->scores[i];
+        }
+    }
+
+    // 3. Print All Scores
     for (int i = 0; i < st->player_count; i++) {
         fprintf(fp, "Player %d: %d points\n", i + 1, st->scores[i]);
     }
     
+    fprintf(fp, "----------------\n");
+
+    // 4. Identify Winner(s) or Tie
+    int winner_count = 0;
+    int winners[MAX_PLAYERS];
+
+    for (int i = 0; i < st->player_count; i++) {
+        if (st->scores[i] == max_score) {
+            winners[winner_count++] = i;
+        }
+    }
+
+    // 5. Write Winner Result
+    if (winner_count > 1) {
+        fprintf(fp, "RESULT: TIE GAME between Players: ");
+        for(int i = 0; i < winner_count; i++) {
+            fprintf(fp, "P%d ", winners[i] + 1);
+        }
+        fprintf(fp, "with %d points\n", max_score);
+    } else if (winner_count == 1) {
+        fprintf(fp, "RESULT: Winner is Player %d with %d points\n", winners[0] + 1, max_score);
+    } else {
+        fprintf(fp, "RESULT: No winner determined.\n");
+    }
+    
     fclose(fp);
-    printf("[SERVER] Game log written to %s\n", filename); // Fixed to show actual filename
+    printf("[SERVER] Game log written to %s\n", filename);
 }
 
 void cleanup_and_exit(int sig){
@@ -83,14 +116,6 @@ void cleanup_and_exit(int sig){
     shm_unlink("/hangman_shm");
     exit(0);
 }
-
-
-// void cleanup_and_exit(int sig) {
-//     printf("\n[Server] Shutting down...\n");
-//     if (state_ptr) munmap(state_ptr, sizeof(shared_state_t));
-//     shm_unlink("/hangman_shm");
-//     exit(0);
-// }
 
 // --- SCHEDULER THREAD ---
 void *scheduler_thread(void *arg)
@@ -174,8 +199,6 @@ void *scheduler_thread(void *arg)
     return NULL;
 }
 
-
-
 int main()
 {
     srand(time(NULL));
@@ -203,7 +226,7 @@ int main()
     state->target_players = 0; 
     state->current_turn = 0;
     state->turn_complete = 0;
-    state->log_count = 0; /// logging ///
+    state->log_count = 0; 
     state->phase = GAME_WAITING;
     memset(state->active, 0, sizeof(state->active));
     memset(state->player_eliminated, 0, sizeof(state->player_eliminated));
@@ -219,7 +242,6 @@ int main()
     game_setup_round(state, get_random_word());
 
     // 1. Wait until Host sets the target
-    // We use (volatile int*) to force the compiler to check memory every loop
     while(*(volatile int*)&state->target_players == 0) {
         sleep(1);
     }
@@ -232,13 +254,12 @@ int main()
     }
     
     printf("[Server] Lobby Full (%d/%d)! Starting game in 3 seconds...\n", state->player_count, state->target_players);
-    fflush(stdout); // Force print
+    fflush(stdout); 
     sleep(3); 
     
     printf("[Server] GO! Setting phase to GAME_RUNNING.\n");
     state->phase = GAME_RUNNING;
     
-    // Broadcast twice just to be safe
     pthread_cond_broadcast(&state->turn_cond);
     usleep(100000);
     pthread_cond_broadcast(&state->turn_cond);

@@ -1,0 +1,46 @@
+=== GAME SESSION LOG ===
+
+[ CURRENT WORD: juice ]
+----------------------
+P1 guessed 'e' -> HIT (+1 Point)
+P2 guessed 'p' -> MISS (-1 Life)
+P3 guessed 'q' -> MISS (-1 Life)
+P1 guessed 'g' -> MISS (-1 Life)
+P2 guessed 'd' -> MISS (-1 Life)
+P3 guessed 'o' -> MISS (-1 Life)
+P1 guessed 't' -> MISS (-1 Life)
+P2 guessed 'r' -> MISS (-1 Life)
+P3 guessed 'c' -> HIT (+1 Point)
+P1 guessed 'f' -> MISS (-1 Life)
+P2 guessed 'a' -> MISS (-1 Life)
+P3 guessed 'i' -> HIT (+1 Point)
+P1 guessed 's' -> MISS (-1 Life)
+P2 guessed 'l' -> MISS (-1 Life)
+P3 guessed 'u' -> HIT (+1 Point)
+P1 guessed 'j' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: chair ]
+----------------------
+P2 guessed 'f' -> ELIMINATED
+P3 guessed 'e' -> MISS (-1 Life)
+P1 guessed 'o' -> MISS (-1 Life)
+P3 guessed 'a' -> HIT (+1 Point)
+P1 guessed 'g' -> ELIMINATED
+P3 guessed 'k' -> MISS (-1 Life)
+P3 guessed 'b' -> MISS (-1 Life)
+P3 guessed 'r' -> HIT (+1 Point)
+P3 guessed 'c' -> HIT (+1 Point)
+P3 guessed 'i' -> HIT (+1 Point)
+P3 guessed 'h' -> WORD COMPLETED (+2 Points)
+
+[ CURRENT WORD: space ]
+----------------------
+P3 guessed 't' -> ELIMINATED
+
+----------------
+Final Scores:
+Winner is Player 1
+----------------
+Player 1: 3 points
+Player 2: 0 points
+Player 3: 9 points
