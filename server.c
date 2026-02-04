@@ -1,3 +1,12 @@
+/*
+ * * Purpose: Main Server Process.
+ * Responsibilities:
+ * 1. Create and Initialize Shared Memory.
+ * 2. Run the Scheduler Thread (Round Robin Turn Management).
+ * 3. Wait for Lobby to fill.
+ * 4. Write final scores to log file on exit.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -12,24 +21,24 @@
 
 shared_state_t *state_ptr;
 
-// --- LOG FILE ---
+// FILE I/O: LOGGING
 void write_log_to_file(shared_state_t *st) {
     if (st == NULL || st->log_count == 0) {
         printf("[SERVER] No scores to write.\n");
         return;
     }   
 
+    // Generate unique filename (scores_1.txt, scores_2.txt...)
     char filename[32];
     int file_num = 1;
     FILE *fp = NULL;
 
-    // Find a unique filename (scores_1.txt, scores_2.txt, etc.)
     while (1) {
         sprintf(filename, "scores_%d.txt", file_num);
         if (access(filename, F_OK) != -1) {
-            file_num++;
+            file_num++; // File exists, try next number
         } else {
-            fp = fopen(filename, "w");
+            fp = fopen(filename, "w"); // Create new file
             break;
         }
     }
@@ -40,14 +49,16 @@ void write_log_to_file(shared_state_t *st) {
     
     char last_word[MAX_WORD_LEN] = ""; 
 
-    // 1. Write the Move History
+    // Write Log History
     for (int i = 0; i < st->log_count; i++) {
+        // Header for new words
         if (strcmp(last_word, st->logs[i].word) != 0) {
             fprintf(fp, "\n[ CURRENT WORD: %s ]\n", st->logs[i].word);
             fprintf(fp, "----------------------\n");
             strncpy(last_word, st->logs[i].word, MAX_WORD_LEN);
         }
-
+        
+        // Detailed Event Log
         switch (st->logs[i].result) {
             case GUESS_HIT: 
                 fprintf(fp, "P%d guessed '%c' -> HIT (+1 Point)\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
@@ -63,50 +74,41 @@ void write_log_to_file(shared_state_t *st) {
         }
     }
 
+    // Write Final Scoreboard
     fprintf(fp, "\n----------------\nFinal Scores:\n");
     
-    // 2. Calculate Max Score (Dynamic for ALL players)
+    // Find Max Score
     int max_score = -1;
     for (int i = 0; i < st->player_count; i++) {
-        if (st->scores[i] > max_score) {
-            max_score = st->scores[i];
-        }
+        if (st->scores[i] > max_score) max_score = st->scores[i];
     }
 
-    // 3. Print All Scores
+    // Print Individual Scores
     for (int i = 0; i < st->player_count; i++) {
         fprintf(fp, "Player %d: %d points\n", i + 1, st->scores[i]);
     }
-    
     fprintf(fp, "----------------\n");
 
-    // 4. Identify Winner(s) or Tie
+    // Determine Winner(s)
     int winner_count = 0;
     int winners[MAX_PLAYERS];
-
     for (int i = 0; i < st->player_count; i++) {
-        if (st->scores[i] == max_score) {
-            winners[winner_count++] = i;
-        }
+        if (st->scores[i] == max_score) winners[winner_count++] = i;
     }
 
-    // 5. Write Winner Result
     if (winner_count > 1) {
         fprintf(fp, "RESULT: TIE GAME between Players: ");
-        for(int i = 0; i < winner_count; i++) {
-            fprintf(fp, "P%d ", winners[i] + 1);
-        }
+        for(int i = 0; i < winner_count; i++) fprintf(fp, "P%d ", winners[i] + 1);
         fprintf(fp, "with %d points\n", max_score);
     } else if (winner_count == 1) {
         fprintf(fp, "RESULT: Winner is Player %d with %d points\n", winners[0] + 1, max_score);
-    } else {
-        fprintf(fp, "RESULT: No winner determined.\n");
     }
     
     fclose(fp);
     printf("[SERVER] Game log written to %s\n", filename);
 }
 
+// Cleanup Handler (CTRL+C)
 void cleanup_and_exit(int sig){
     printf("\n[SERVER] Shutting down...\n");
     if (state_ptr) {
@@ -117,7 +119,7 @@ void cleanup_and_exit(int sig){
     exit(0);
 }
 
-// --- SCHEDULER THREAD ---
+// THREAD: SCHEDULER
 void *scheduler_thread(void *arg)
 {
     shared_state_t *st = (shared_state_t *)arg;
@@ -129,35 +131,32 @@ void *scheduler_thread(void *arg)
 
     while (st->phase != GAME_ENDED)
     {
+        // 1. Wait for signal from current player
         pthread_mutex_lock(&st->turn_mutex);
-
         while (st->turn_complete == 0 && st->phase != GAME_ENDED) {
             pthread_cond_wait(&st->sched_cond, &st->turn_mutex);
         }
 
+        // 2. Check if Game Over (All players dead)
         int alive_count = 0;
         for(int i=0; i<st->player_count; i++) {
             if(st->active[i] && !st->player_eliminated[i]) alive_count++;
         }
 
         if (alive_count == 0) {
+            // Game Over Sequence
             printf("\n\n=== GAME OVER ===\n");
-            printf("Final Word was: %s\n", st->secret_word);
             
+            // Determine Winner logic for Console Output
             int max_score = -1;
-            for (int i = 0; i < st->player_count; i++) {
-                if (st->scores[i] > max_score) max_score = st->scores[i];
-            }
+            for (int i = 0; i < st->player_count; i++) if (st->scores[i] > max_score) max_score = st->scores[i];
 
             printf("\n--- FINAL SCOREBOARD ---\n");
             int winner_count = 0;
             int winners[MAX_PLAYERS];
-            
             for (int i = 0; i < st->player_count; i++) {
                 printf("Player %d: %d points\n", i + 1, st->scores[i]);
-                if (st->scores[i] == max_score) {
-                    winners[winner_count++] = i;
-                }
+                if (st->scores[i] == max_score) winners[winner_count++] = i;
             }
             printf("------------------------\n");
 
@@ -170,11 +169,12 @@ void *scheduler_thread(void *arg)
             }
 
             st->phase = GAME_ENDED;
-            pthread_cond_broadcast(&st->turn_cond);
+            pthread_cond_broadcast(&st->turn_cond); // Wake up clients so they exit
             pthread_mutex_unlock(&st->turn_mutex);
             break;
         }
 
+        // 3. Round Robin Logic: Find next active, living player
         int found_next = 0;
         int attempts = 0;
         int next_id = st->current_turn;
@@ -192,23 +192,26 @@ void *scheduler_thread(void *arg)
             printf("[Scheduler] Next turn: Player %d\n", next_id + 1);
         }
 
+        // 4. Notify Clients
         st->turn_complete = 0;
-        pthread_cond_broadcast(&st->turn_cond);
+        pthread_cond_broadcast(&st->turn_cond); // Wake up all clients to check turn
         pthread_mutex_unlock(&st->turn_mutex);
     }
     return NULL;
 }
 
+// MAIN SERVER PROCESS
 int main()
 {
     srand(time(NULL));
     shm_unlink("/hangman_shm"); // Force clear old memory
 
+    // 1. Create Shared Memory Object
     int shm_fd = shm_open("/hangman_shm", O_CREAT | O_RDWR, 0666);
     ftruncate(shm_fd, sizeof(shared_state_t));
     shared_state_t *state = mmap(NULL, sizeof(shared_state_t), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
-    // Sync Init
+    // 2. Initialize Synchronization (Process Shared)
     pthread_mutexattr_t mattr;
     pthread_mutexattr_init(&mattr);
     pthread_mutexattr_setpshared(&mattr, PTHREAD_PROCESS_SHARED);
@@ -221,7 +224,7 @@ int main()
     pthread_cond_init(&state->turn_cond, &cattr);
     pthread_cond_init(&state->sched_cond, &cattr);
 
-    // Config Init
+    // 3. Initialize Game State
     state->player_count = 0;
     state->target_players = 0; 
     state->current_turn = 0;
@@ -235,24 +238,27 @@ int main()
     state_ptr = state;
     signal(SIGINT, cleanup_and_exit);
 
+    // 4. Start Scheduler Thread
     pthread_t sched_tid;
     pthread_create(&sched_tid, NULL, scheduler_thread, (void *)state);
 
     printf("[Server] Lobby Open. Waiting for Host (Player 1) to join...\n");
     game_setup_round(state, get_random_word());
 
-    // 1. Wait until Host sets the target
+    // 5. Wait for Host Config
+    // Use (volatile int*) to force compiler to read memory fresh every loop
     while(*(volatile int*)&state->target_players == 0) {
         sleep(1);
     }
     printf("[Server] Host set lobby size to %d. Waiting for players...\n", state->target_players);
 
-    // 2. Wait until player count matches target
+    // 6. Wait for Players
     while(*(volatile int*)&state->player_count < *(volatile int*)&state->target_players) {
         printf("[Server] Players connected: %d/%d\n", state->player_count, state->target_players);
         sleep(1);
     }
     
+    // 7. Start Game
     printf("[Server] Lobby Full (%d/%d)! Starting game in 3 seconds...\n", state->player_count, state->target_players);
     fflush(stdout); 
     sleep(3); 
@@ -260,6 +266,7 @@ int main()
     printf("[Server] GO! Setting phase to GAME_RUNNING.\n");
     state->phase = GAME_RUNNING;
     
+    // Broadcast signal multiple times to ensure clients wake up
     pthread_cond_broadcast(&state->turn_cond);
     usleep(100000);
     pthread_cond_broadcast(&state->turn_cond);
