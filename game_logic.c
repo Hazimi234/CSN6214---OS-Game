@@ -60,7 +60,6 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
     }
     // Mark as guessed for EVERYONE
     st->guessed[idx] = 1;
-    // char guess_char = (char)('a' + idx);
     int hit = 0;
     int len = strlen(st->secret_word);
 
@@ -72,8 +71,7 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
         }
     }
 
-    // guess_result_t res;
-    // int score_change = 0;
+ 
 
     if (!hit) {
         st->remaining_attempts[player_id]--;
@@ -86,11 +84,11 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
     } else{
          if (strcmp(st->revealed, st->secret_word) == 0) {
         st->scores[player_id] += 2;
-        // score_change = 2;
+        // score_change = 2; if word completed
         res= GUESS_WORD_COMPLETED;
     } else{
         st->scores[player_id] += 1;
-        // score_change = 1;
+        // score_change = 1; if a letter is guessed correctly
         res= GUESS_HIT;
         }
     }
@@ -98,17 +96,14 @@ guess_result_t game_apply_guess(shared_state_t *st, int player_id, const char *i
    
 
     // Add to game log
-    if (st->log_count < MAX_LOG_ENTRIES){
-        st->logs[st->log_count].player_id = player_id;
-        st->logs[st->log_count].guessed_char = guess_char;
-        st->logs[st->log_count].result = res;
-        strncpy(st->logs[st->log_count].word, st->secret_word, MAX_WORD_LEN - 1);
-        st->log_count++;
+    if (st->log_count < MAX_LOG_ENTRIES){ // Prevent overflow
+        st->logs[st->log_count].player_id = player_id; // Log the player ID
+        st->logs[st->log_count].guessed_char = guess_char; // Log the guessed character
+        st->logs[st->log_count].result = res; // Log the result
+        strncpy(st->logs[st->log_count].word, st->secret_word, MAX_WORD_LEN - 1); // Log current word state
+        st->log_count++; // Increment log count
     }
     return res;
 }
-    // --- SCORING LOGIC UPDATE ---
-    
-    // Check if word is fully revealed
-    // +2 Points for finishing the word
+
     

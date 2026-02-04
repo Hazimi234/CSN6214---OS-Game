@@ -5,7 +5,7 @@
 
 #define MAX_PLAYERS 5
 #define MAX_WORD_LEN 32
-#define MAX_ATTEMPTS 6 //need 6 btw
+#define MAX_ATTEMPTS 6 
 #define MAX_LOG_ENTRIES 100
 #define LOG_MSG_LEN 64
 
@@ -26,12 +26,12 @@ typedef enum {
     GUESS_GAME_OVER
 } guess_result_t;
 
-typedef struct {
+typedef struct { //for logging each guess
     int player_id;
     char guessed_char;
     guess_result_t result;
     int score_change;
-    char word[MAX_WORD_LEN];
+    char word[MAX_WORD_LEN]; // Current state of the word after the guess
 } game_log_entry_t;
 
 typedef struct
@@ -61,7 +61,7 @@ typedef struct
 
     // --- GAME LOG ---
     int log_count;
-    game_log_entry_t logs[MAX_LOG_ENTRIES];
+    game_log_entry_t logs[MAX_LOG_ENTRIES]; // Circular log buffer
     
 
     game_phase_t phase;

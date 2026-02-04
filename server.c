@@ -15,12 +15,12 @@ shared_state_t *state_ptr;
 // --- LOG FILE ---
 void write_log_to_file(shared_state_t *st) {
     if (st == NULL || st->log_count == 0) {
-        printf("[SERVER] No scores to write.\n");
+        printf("[SERVER] No scores to write.\n"); //nothing to log
         return;
     }   
 
-    char filename[32];
-    int file_num = 1;
+    char filename[32]; //buffer for filename
+    int file_num = 1; //first file number
     FILE *fp = NULL;
 
     // Find a unique filename (scores_1.txt, scores_2.txt, etc.)
@@ -48,7 +48,7 @@ void write_log_to_file(shared_state_t *st) {
             strncpy(last_word, st->logs[i].word, MAX_WORD_LEN);
         }
 
-        switch (st->logs[i].result) {
+        switch (st->logs[i].result) { // Log based on guess result
             case GUESS_HIT: 
                 fprintf(fp, "P%d guessed '%c' -> HIT (+1 Point)\n", st->logs[i].player_id + 1, st->logs[i].guessed_char); break;
             case GUESS_MISS: 
@@ -81,12 +81,12 @@ void write_log_to_file(shared_state_t *st) {
     fprintf(fp, "----------------\n");
 
     // 4. Identify Winner(s) or Tie
-    int winner_count = 0;
-    int winners[MAX_PLAYERS];
+    int winner_count = 0; //count of winners
+    int winners[MAX_PLAYERS]; //array to hold winner IDs
 
     for (int i = 0; i < st->player_count; i++) {
-        if (st->scores[i] == max_score) {
-            winners[winner_count++] = i;
+        if (st->scores[i] == max_score) {//finds a winner based on max score
+            winners[winner_count++] = i; // store winner ID
         }
     }
 
@@ -103,8 +103,8 @@ void write_log_to_file(shared_state_t *st) {
         fprintf(fp, "RESULT: No winner determined.\n");
     }
     
-    fclose(fp);
-    printf("[SERVER] Game log written to %s\n", filename);
+    fclose(fp); // Close the file
+    printf("[SERVER] Game log written to %s\n", filename); // Notify log written
 }
 
 void cleanup_and_exit(int sig){
