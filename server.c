@@ -24,7 +24,7 @@ shared_state_t *state_ptr;
 // FILE I/O: LOGGING
 void write_log_to_file(shared_state_t *st) {
     if (st == NULL || st->log_count == 0) {
-        printf("[SERVER] No scores to write.\n");
+        printf("[SERVER] No scores to write.\n"); //nothing to log
         return;
     }   
 
@@ -104,8 +104,8 @@ void write_log_to_file(shared_state_t *st) {
         fprintf(fp, "RESULT: Winner is Player %d with %d points\n", winners[0] + 1, max_score);
     }
     
-    fclose(fp);
-    printf("[SERVER] Game log written to %s\n", filename);
+    fclose(fp); // Close the file
+    printf("[SERVER] Game log written to %s\n", filename); // Notify log written
 }
 
 // Cleanup Handler (CTRL+C)
